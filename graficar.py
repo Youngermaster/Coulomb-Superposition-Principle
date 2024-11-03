@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.lines import Line2D
 
 # Constantes
 k = 8.988e9  # Constante de Coulomb (N·m²/C²)
@@ -107,7 +108,7 @@ for segmento in segmentos_posiciones:
     ax.plot(xs, zs, ys, color='blue')  # Intercambiamos Y y Z
 
 # Graficamos la cuadrícula en el plano XZ
-ax.scatter(X, Z, Y, color='green', s=20, alpha=0.5, label='Puntos de la cuadrícula')  # Intercambiamos Y y Z
+grid_scatter = ax.scatter(X, Z, Y, color='green', s=20, alpha=0.5, label='Puntos de la cuadrícula')  # Intercambiamos Y y Z
 
 # Configuramos las etiquetas y límites de los ejes
 ax.set_xlabel('X (m)')
@@ -118,7 +119,7 @@ ax.set_ylim([-1, 1])
 ax.set_zlim([-1, 1])
 
 # Ajustamos la vista para que el eje Z sea horizontal y Y vertical
-ax.view_init(elev=0, azim=-90)  # Opcional: ajustar el ángulo de vista
+ax.view_init(elev=0, azim=-90)
 
 # Preparamos arrays para almacenar los campos eléctricos en los puntos de la cuadrícula
 E_total = np.zeros((grid_size, grid_size, 3))
@@ -139,20 +140,62 @@ for i in range(grid_size):
             campo_total += campo
         E_total[i, j] = campo_total
 
-# Visualización del campo eléctrico (opcional)
+# Visualización del campo eléctrico
 E_magnitude = np.linalg.norm(E_total, axis=2)
+E_magnitude[E_magnitude == 0] = 1e-20  # Evitar división por cero
 E_normalized = E_total / E_magnitude[:, :, np.newaxis]
+
+# Preparamos arrays para almacenar los campos magnéticos en los puntos de la cuadrícula
+B_total = np.zeros((grid_size, grid_size, 3))
+
+# Calculamos el campo magnético en cada punto de la cuadrícula
+for i in range(grid_size):
+    for j in range(grid_size):
+        punto = np.array([X[i, j], Y[i, j], Z[i, j]])
+        campo_total = np.zeros(3)
+        # Calculamos el campo magnético debido a cada segmento de corriente
+        for segmento in segmentos_posiciones:
+            r0 = segmento[0]
+            r1 = segmento[1]
+            dl = r1 - r0  # Vector diferencial de longitud
+            r = punto - r0  # Vector desde el inicio del segmento al punto
+            r_mag = np.linalg.norm(r)
+            if r_mag == 0:
+                continue  # Evitamos división por cero
+            dB = (mu0 * I / (4 * np.pi)) * np.cross(dl, r) / r_mag**3
+            campo_total += dB
+        B_total[i, j] = campo_total
+
+# Visualización del campo magnético
+B_magnitude = np.linalg.norm(B_total, axis=2)
+B_magnitude[B_magnitude == 0] = 1e-20  # Evitar división por cero
+B_normalized = B_total / B_magnitude[:, :, np.newaxis]
 
 # Podemos reducir el número de vectores para evitar una gráfica sobrecargada
 skip = (slice(None, None, 2), slice(None, None, 2))
 
 # Graficamos los vectores del campo eléctrico en los puntos de la cuadrícula
-ax.quiver(X[skip], Z[skip], Y[skip],  # Intercambiamos Y y Z
-          E_normalized[skip][:, :, 0], E_normalized[skip][:, :, 2], E_normalized[skip][:, :, 1],
-          length=0.1, color='black', normalize=True, label='Campo Eléctrico')
+E_quiver = ax.quiver(X[skip], Z[skip], Y[skip], # Intercambiamos Y y Z
+                     E_normalized[skip][:, :, 0], E_normalized[skip][:, :, 2], E_normalized[skip][:, :, 1],
+                     length=0.1, color='black', normalize=True)
 
+# Graficamos los vectores del campo magnético en los puntos de la cuadrícula
+B_quiver = ax.quiver(X[skip], Z[skip], Y[skip], # Intercambiamos Y y Z
+                     B_normalized[skip][:, :, 0], B_normalized[skip][:, :, 2], B_normalized[skip][:, :, 1],
+                     length=0.1, color='blue', normalize=True)
 
-ax.legend()
+# Añadimos los "chart legends"
+legend_elements = [
+    Line2D([0], [0], marker='o', color='w', label='Cargas en la espira',
+           markerfacecolor='red', markersize=5),
+    Line2D([0], [0], color='blue', lw=2, label='Espira cuadrada'),
+    Line2D([0], [0], marker='o', color='w', label='Puntos de la cuadrícula',
+           markerfacecolor='green', markersize=5),
+    Line2D([0], [0], color='black', lw=0, marker='^', markersize=10, markerfacecolor='black', label='Campo Eléctrico'),
+    Line2D([0], [0], color='blue', lw=0, marker='^', markersize=10, markerfacecolor='blue', label='Campo Magnético')
+]
+ax.legend(handles=legend_elements)
+
 ax.set_title('Espira cuadrada en YZ y plano XZ con cuadrícula')
 
 plt.show()
