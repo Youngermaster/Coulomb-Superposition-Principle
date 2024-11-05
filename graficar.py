@@ -8,7 +8,8 @@ k = 8.988e9  # Constante de Coulomb (N·m²/C²)
 mu0 = 4 * np.pi * 1e-7  # Permeabilidad magnética del vacío (T·m/A)
 
 # Parámetros de la espira y cargas
-q = 12e-9  # Carga de cada punto (12 nC)
+# q = 12e-9  # Carga de cada punto (12 nC)
+q = 3e-10  # Carga de cada punto (0,3 nC)
 I = 4  # Corriente en la espira (4 A)
 N_cargas_por_lado = 10  # Número de cargas por lado
 N_segmentos_por_lado = 10  # Número de segmentos por lado
