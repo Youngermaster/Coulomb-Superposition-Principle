@@ -85,8 +85,8 @@ z_grid = np.linspace(-1, 1, grid_size)
 X, Z = np.meshgrid(x_grid, z_grid)
 Y = np.zeros_like(X)  # El plano XZ está en Y=0
 
-# Preparamos el archivo para guardar los resultados del campo eléctrico
-with open('campo_electrico.txt', 'w') as file_e:
+# Preparamos los archivos para guardar los resultados del campo eléctrico y sus vectores
+with open('campo_electrico.txt', 'w') as file_e, open('vectores_campo_electrico.txt', 'w') as file_e_vec:
     # Iteramos sobre cada punto de la cuadrícula
     for i in range(grid_size):
         for j in range(grid_size):
@@ -101,13 +101,16 @@ with open('campo_electrico.txt', 'w') as file_e:
                 r_hat = r_vector / r_mag
                 campo = (k * q / r_mag**2) * r_hat
                 campo_total += campo
-            # Guardamos el resultado en el archivo
-            file_e.write(f"Punto ({X[i,j]:.2f}, {Y[i,j]:.2f}, {Z[i,j]:.2f}): Campo Eléctrico = ({campo_total[0]:.2e}, {campo_total[1]:.2e}, {campo_total[2]:.2e})\n")
+            # Guardamos el resultado en los archivos
+            file_e.write(f"Punto ({X[i,j]:.2f}, {Y[i,j]:.2f}, {Z[i,j]:.2f}): "
+                         f"Campo Eléctrico = ({campo_total[0]:.2e}, {campo_total[1]:.2e}, {campo_total[2]:.2e})\n")
+            print(f"[{campo_total[0]:.6e}, {campo_total[1]:.6e}, {campo_total[2]:.6e}]")
+            file_e_vec.write(f"{campo_total[0]:.6e}, {campo_total[1]:.6e}, {campo_total[2]:.6e}\n")
 
-print("El cálculo del campo eléctrico ha finalizado y los resultados se han guardado en 'campo_electrico.txt'.")
+print("El cálculo del campo eléctrico ha finalizado y los resultados se han guardado en 'campo_electrico.txt' y 'vectores_campo_electrico.txt'.")
 
-# Preparamos el archivo para guardar los resultados del campo magnético
-with open('campo_magnetico.txt', 'w') as file_b:
+# Preparamos los archivos para guardar los resultados del campo magnético y sus vectores
+with open('campo_magnetico.txt', 'w') as file_b, open('vectores_campo_magnetico.txt', 'w') as file_b_vec:
     # Iteramos sobre cada punto de la cuadrícula
     for i in range(grid_size):
         for j in range(grid_size):
@@ -124,7 +127,10 @@ with open('campo_magnetico.txt', 'w') as file_b:
                     continue  # Evitamos división por cero
                 dB = (mu0 * I / (4 * np.pi)) * np.cross(dl, r) / r_mag**3
                 campo_total += dB
-            # Guardamos el resultado en el archivo
-            file_b.write(f"Punto ({X[i,j]:.2f}, {Y[i,j]:.2f}, {Z[i,j]:.2f}): Campo Magnético = ({campo_total[0]:.2e}, {campo_total[1]:.2e}, {campo_total[2]:.2e})\n")
+            # Guardamos el resultado en los archivos
+            file_b.write(f"Punto ({X[i,j]:.2f}, {Y[i,j]:.2f}, {Z[i,j]:.2f}): "
+                         f"Campo Magnético = ({campo_total[0]:.2e}, {campo_total[1]:.2e}, {campo_total[2]:.2e})\n")
+            print(f"[{campo_total[0]:.6e}, {campo_total[1]:.6e}, {campo_total[2]:.6e}]")
+            file_b_vec.write(f"{campo_total[0]:.6e}, {campo_total[1]:.6e}, {campo_total[2]:.6e}\n")
 
-print("El cálculo del campo magnético ha finalizado y los resultados se han guardado en 'campo_magnetico.txt'.")
+print("El cálculo del campo magnético ha finalizado y los resultados se han guardado en 'campo_magnetico.txt' y 'vectores_campo_magnetico.txt'.")
